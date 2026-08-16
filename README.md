@@ -1,12 +1,57 @@
 # Red Hat Build of Keycloak (RHBK) on OpenShift 4.20+ GitOps Architecture
 ### Enterprise Multi-Cluster Identity & Access Management with Microsoft Entra ID, Active Directory & OAuth 2.1
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![OpenShift](https://img.shields.io/badge/OpenShift-4.20+-red.svg)](https://docs.redhat.com/en/documentation/openshift_container_platform/4.20)
-[![Keycloak](https://img.shields.io/badge/Red%20Hat%20Build%20of%20Keycloak-24%2B%20%2F%2026-blueviolet.svg)](https://access.redhat.com/products/red-hat-build-of-keycloak)
-[![OAuth 2.1](https://img.shields.io/badge/OAuth-2.1%20%2F%20OIDC-success.svg)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-11)
-[![GitOps](https://img.shields.io/badge/GitOps-ArgoCD%20%2F%20OpenShift%20GitOps-orange.svg)](https://argo-cd.readthedocs.io/)
-[![CI/CD](https://img.shields.io/badge/CI%2FCD-Jenkins%20%2B%20GitHub%20Actions-brightgreen.svg)](https://www.jenkins.io/)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/keycloak/keycloak-admin-ui/main/docs/keycloak_logo.png" alt="Keycloak Logo" width="220" />
+</p>
+
+<p align="center">
+  <!-- Core Identity & Platform -->
+  <a href="https://access.redhat.com/products/red-hat-build-of-keycloak"><img src="https://img.shields.io/badge/RHBK-Keycloak%2024%2B%20%2F%2026%20(Quarkus)-blueviolet?style=flat-square&logo=redhat&logoColor=white" alt="RHBK" /></a>
+  <a href="https://docs.redhat.com/en/documentation/openshift_container_platform/4.20"><img src="https://img.shields.io/badge/OpenShift-4.20%2B-red?style=flat-square&logo=redhatopenshift&logoColor=white" alt="OpenShift" /></a>
+  <a href="https://kubernetes.io/"><img src="https://img.shields.io/badge/Kubernetes-v1.31%2B-326ce5?style=flat-square&logo=kubernetes&logoColor=white" alt="Kubernetes" /></a>
+  <a href="https://aws.amazon.com/rosa/"><img src="https://img.shields.io/badge/AWS-ROSA%20%2F%20IPI-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white" alt="AWS" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square&logo=apache&logoColor=white" alt="License" /></a>
+</p>
+
+<p align="center">
+  <!-- Security Standards -->
+  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-11"><img src="https://img.shields.io/badge/OAuth-2.1%20Compliant-success?style=flat-square&logo=openid&logoColor=white" alt="OAuth 2.1" /></a>
+  <a href="https://openid.net/connect/"><img src="https://img.shields.io/badge/OIDC-OpenID%20Connect-F78C40?style=flat-square&logo=openid&logoColor=white" alt="OIDC" /></a>
+  <a href="https://datatracker.ietf.org/doc/html/rfc7636"><img src="https://img.shields.io/badge/PKCE-RFC%207636%20(S256)-0052CC?style=flat-square" alt="PKCE" /></a>
+  <a href="https://datatracker.ietf.org/doc/html/rfc7523"><img src="https://img.shields.io/badge/Private%20Key%20JWT-RFC%207523-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" alt="RFC 7523" /></a>
+  <a href="https://datatracker.ietf.org/doc/html/rfc8693"><img src="https://img.shields.io/badge/Token%20Exchange-RFC%208693-blue?style=flat-square" alt="RFC 8693" /></a>
+  <a href="https://datatracker.ietf.org/doc/html/rfc8705"><img src="https://img.shields.io/badge/mTLS-RFC%208705-green?style=flat-square" alt="mTLS" /></a>
+</p>
+
+<p align="center">
+  <!-- Identity Federation & Corporate Directories -->
+  <a href="https://learn.microsoft.com/en-us/entra/"><img src="https://img.shields.io/badge/Microsoft%20Entra%20ID-Azure%20AD%20OIDC-0078D4?style=flat-square&logo=microsoftazure&logoColor=white" alt="Microsoft Entra ID" /></a>
+  <a href="https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-domain-services"><img src="https://img.shields.io/badge/Active%20Directory-LDAPS%20Federation-00A4EF?style=flat-square&logo=windows&logoColor=white" alt="Active Directory" /></a>
+  <a href="https://external-secrets.io/"><img src="https://img.shields.io/badge/Secrets-External%20Secrets%20Operator%20(ESO)-5b5bd5?style=flat-square" alt="ESO" /></a>
+  <a href="https://www.vaultproject.io/"><img src="https://img.shields.io/badge/HashiCorp-Vault-000000?style=flat-square&logo=vault&logoColor=white" alt="Vault" /></a>
+  <a href="https://aws.amazon.com/secrets-manager/"><img src="https://img.shields.io/badge/AWS-Secrets%20Manager%20(IRSA)-FF9900?style=flat-square&logo=amazonwebservices&logoColor=white" alt="AWS Secrets Manager" /></a>
+</p>
+
+<p align="center">
+  <!-- GitOps, CI/CD & Workloads -->
+  <a href="https://argo-cd.readthedocs.io/"><img src="https://img.shields.io/badge/GitOps-ArgoCD%20%2F%20OpenShift%20GitOps-orange?style=flat-square&logo=argo&logoColor=white" alt="ArgoCD" /></a>
+  <a href="https://kustomize.io/"><img src="https://img.shields.io/badge/K8s-Kustomize%20v5-blue?style=flat-square&logo=kubernetes&logoColor=white" alt="Kustomize" /></a>
+  <a href="https://www.jenkins.io/"><img src="https://img.shields.io/badge/CI%2FCD-Jenkins%20(Helm%20Chart)-D24939?style=flat-square&logo=jenkins&logoColor=white" alt="Jenkins" /></a>
+  <a href="https://github.com/nubenetes/keycloak-openshift-2026/actions/workflows/ci-lint-validate.yml"><img src="https://img.shields.io/badge/CI%20Quality%20Gate-Passing-brightgreen?style=flat-square&logo=githubactions&logoColor=white" alt="CI Status" /></a>
+  <a href="https://backstage.io/"><img src="https://img.shields.io/badge/Developer%20Portal-Backstage%20IDP-9BF0E1?style=flat-square&logo=spotify&logoColor=black" alt="Backstage" /></a>
+  <a href="https://angular.dev/"><img src="https://img.shields.io/badge/Frontend-Angular%2018%2B%20(BFF)-DD0031?style=flat-square&logo=angular&logoColor=white" alt="Angular" /></a>
+  <a href="https://quarkus.io/"><img src="https://img.shields.io/badge/Microservices-Quarkus%203.x-4695EB?style=flat-square&logo=quarkus&logoColor=white" alt="Quarkus" /></a>
+</p>
+
+<p align="center">
+  <!-- Observability & Persistence -->
+  <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/Database-PostgreSQL%2016%20(Multi--AZ)-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" /></a>
+  <a href="https://infinispan.org/"><img src="https://img.shields.io/badge/Cache-Infinispan%20(JGroups%20WAN)-CC0000?style=flat-square" alt="Infinispan" /></a>
+  <a href="https://prometheus.io/"><img src="https://img.shields.io/badge/Telemetry-Prometheus%20(User%20Workload)-E6522C?style=flat-square&logo=prometheus&logoColor=white" alt="Prometheus" /></a>
+  <a href="https://grafana.com/"><img src="https://img.shields.io/badge/Dashboards-Grafana%20Production-F46800?style=flat-square&logo=grafana&logoColor=white" alt="Grafana" /></a>
+  <img src="https://img.shields.io/badge/Generated%20by-Gemini%203.7%20Flash%20High%20(AI%20Agent)-8E75B2?style=flat-square&logo=google&logoColor=white" alt="AI Generated" />
+</p>
 
 ---
 
