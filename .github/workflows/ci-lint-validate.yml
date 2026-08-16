@@ -1,0 +1,47 @@
+name: CI Quality Gate & GitOps Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-and-lint:
+    name: Lint Scripts & Validate Kustomize
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Kubectl & Kustomize
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.31.0'
+
+      - name: Validate Shell Script Syntax
+        run: |
+          echo "==> Running bash syntax verification..."
+          chmod +x scripts/*.sh
+          bash -n scripts/*.sh
+
+      - name: Validate Kustomize Overlays
+        run: |
+          echo "==> Validating Kustomize Overlays..."
+          kubectl kustomize gitops/clusters/cluster-alpha-dev > /dev/null
+          kubectl kustomize gitops/clusters/cluster-bravo-stage > /dev/null
+          kubectl kustomize gitops/clusters/cluster-charlie-prod > /dev/null
+          kubectl kustomize gitops/clusters/cluster-hub-central > /dev/null
+          echo "All Kustomize overlays are valid."
+
+      - name: Validate Grafana Dashboard JSON Syntax
+        run: |
+          echo "==> Validating Grafana Dashboard JSON..."
+          jq empty monitoring/dashboards/keycloak-quarkus-dashboard.json
+          echo "Grafana Dashboard JSON is valid."
+
+      - name: Test OAuth 2.1 Validation Logic (Dry-Run)
+        run: |
+          echo "==> Validating OAuth 2.1 script logic..."
+          ./scripts/validate-oauth2-flows.sh

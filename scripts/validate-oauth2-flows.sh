@@ -44,7 +44,7 @@ log_step "2. Simulating OAuth 2.1 Authorization Code Flow with PKCE (Angular SPA
 CODE_VERIFIER=$(head -c 64 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9-._~' | head -c 64)
 # Calculate SHA256 code_challenge
 CODE_CHALLENGE=$(printf "%s" "$CODE_VERIFIER" | openssl dgst -sha256 -binary | base64 | tr '/+' '_-' | tr -d '=')
-STATE=$(head -c 16 /dev/urandom | hex)
+STATE=$(openssl rand -hex 16)
 
 AUTH_URL="${AUTH_ENDPOINT}?client_id=angular-spa&response_type=code&scope=openid%20profile%20email%20microservices.read&redirect_uri=http://localhost:4200/callback&state=${STATE}&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256"
 

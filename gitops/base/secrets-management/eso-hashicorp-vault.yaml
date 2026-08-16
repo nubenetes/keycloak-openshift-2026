@@ -1,0 +1,44 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: hashicorp-vault-store
+spec:
+  provider:
+    vault:
+      server: "https://vault.internal.enterprise.com:8200"
+      path: "secret"
+      version: "v2"
+      auth:
+        kubernetes:
+          mountPath: "kubernetes"
+          role: "keycloak-operator-role"
+          serviceAccountRef:
+            name: keycloak-vault-auth-sa
+            namespace: keycloak
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: keycloak-vault-sync-secrets
+  namespace: keycloak
+spec:
+  refreshInterval: 30m
+  secretStoreRef:
+    name: hashicorp-vault-store
+    kind: ClusterSecretStore
+  target:
+    name: keycloak-vault-synced-secrets
+    creationPolicy: Owner
+  data:
+    - secretKey: DB_PASSWORD
+      remoteRef:
+        key: enterprise/keycloak
+        property: postgres_password
+    - secretKey: ENTRA_CLIENT_SECRET
+      remoteRef:
+        key: enterprise/keycloak
+        property: azure_entra_client_secret
+    - secretKey: AD_BIND_PASSWORD
+      remoteRef:
+        key: enterprise/keycloak
+        property: ldap_bind_password

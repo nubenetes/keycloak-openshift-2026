@@ -1,0 +1,41 @@
+jenkins:
+  securityRealm:
+    oic:
+      clientId: "jenkins-ci"
+      clientSecret: "${KEYCLOAK_JENKINS_CLIENT_SECRET}"
+      wellKnownOpenIDConfigurationUrl: "https://sso.enterprise.example.com/realms/enterprise/.well-known/openid-configuration"
+      tokenServerUrl: "https://sso.enterprise.example.com/realms/enterprise/protocol/openid-connect/token"
+      authorizationServerUrl: "https://sso.enterprise.example.com/realms/enterprise/protocol/openid-connect/auth"
+      userInfoServerUrl: "https://sso.enterprise.example.com/realms/enterprise/protocol/openid-connect/userinfo"
+      jwksServerUrl: "https://sso.enterprise.example.com/realms/enterprise/protocol/openid-connect/certs"
+      userNameField: "preferred_username"
+      emailFieldName: "email"
+      fullNameFieldName: "name"
+      groupsFieldName: "groups"
+      scopes: "openid profile email groups"
+      automanuallyApprove: true
+      disableSslVerification: false
+      escapeHatchEnabled: false
+
+  authorizationStrategy:
+    projectMatrix:
+      permissions:
+        # Anonymous permissions
+        - "Overall/Read:anonymous"
+        
+        # Admins & Platform Engineers (Full Admin)
+        - "Overall/Administer:/Admins"
+        - "Overall/Administer:/Platform-Engineers"
+
+        # Developers (Build, Read, Cancel on dev jobs)
+        - "Overall/Read:/Developers"
+        - "Job/Build:/Developers"
+        - "Job/Cancel:/Developers"
+        - "Job/Read:/Developers"
+        - "Job/Workspace:/Developers"
+        - "View/Read:/Developers"
+
+        # SecOps & Compliance (Read-only inspection)
+        - "Overall/Read:/SecOps"
+        - "Job/Read:/SecOps"
+        - "View/Read:/SecOps"

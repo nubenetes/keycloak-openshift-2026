@@ -1,0 +1,82 @@
+# Official Jenkins Helm Chart (charts.jenkins.io/jenkins) values for OpenShift 4.20+ DEV Cluster
+controller:
+  componentName: "jenkins-controller"
+  image: "registry.redhat.io/ocp-tools-4/jenkins-rhel9:latest"
+  imagePullPolicy: "Always"
+  numExecutors: 0 # Master runs zero builds; all builds execute on dynamic Kubernetes agent pods
+
+  # Resource Requests and Limits
+  resources:
+    requests:
+      cpu: "1000m"
+      memory: "2048Mi"
+    limits:
+      cpu: "2000m"
+      memory: "4096Mi"
+
+  # OpenShift SecurityContext Constraints Compatibility
+  podSecurityContextOverride:
+    runAsUser: 1001
+    fsGroup: 1001
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+
+  # Ingress / OpenShift Route Configuration
+  ingress:
+    enabled: false # Using OpenShift Route instead
+
+  route:
+    enabled: true
+    annotations:
+      haproxy.router.openshift.io/timeout: "300s"
+      haproxy.router.openshift.io/hsts_header: "max-age=31536000;includeSubDomains"
+    host: jenkins-dev.apps.cluster-alpha.aws.enterprise.com
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+
+  # Jenkins Configuration as Code (JCasC)
+  JCasC:
+    enabled: true
+    defaultConfig: true
+    configScripts:
+      keycloak-oidc: |
+        unclassified:
+          location:
+            url: "https://jenkins-dev.apps.cluster-alpha.aws.enterprise.com/"
+            adminAddress: "devops-admin@enterprise.com"
+
+  # Installed Plugins for OpenShift, Keycloak OIDC, Kubernetes Agents & ArgoCD
+  installPlugins:
+    - "kubernetes:4272.v57f897e937d4"
+    - "workflow-aggregator:596.v8c21c963d92d"
+    - "git:5.2.1"
+    - "configuration-as-code:1775.v810dc950b_514"
+    - "oic-auth:4.421.v1777085c829e" # OpenID Connect authentication with Keycloak
+    - "matrix-auth:3.2.2"
+    - "sonar:2.16.1"
+    - "pipeline-stage-view:2.34"
+
+  # Persistent Storage for Jenkins Home
+  persistence:
+    enabled: true
+    storageClass: "gp3-csi"
+    size: "50Gi"
+    accessMode: "ReadWriteOnce"
+
+# Kubernetes Dynamic Cloud Agent Pod Template
+agent:
+  enabled: true
+  image: "registry.redhat.io/ocp-tools-4/jenkins-agent-base-rhel9:latest"
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1024Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2048Mi"

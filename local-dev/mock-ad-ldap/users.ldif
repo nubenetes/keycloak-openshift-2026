@@ -1,0 +1,62 @@
+dn: ou=CorporateUsers,dc=enterprise,dc=corp
+objectClass: top
+objectClass: organizationalUnit
+ou: CorporateUsers
+
+dn: ou=SecurityGroups,dc=enterprise,dc=corp
+objectClass: top
+objectClass: organizationalUnit
+ou: SecurityGroups
+
+dn: ou=ServiceAccounts,dc=enterprise,dc=corp
+objectClass: top
+objectClass: organizationalUnit
+ou: ServiceAccounts
+
+# Service Account for Keycloak Bind
+dn: cn=svc-keycloak,ou=ServiceAccounts,dc=enterprise,dc=corp
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: svc-keycloak
+sn: Service
+userPassword: SecretPassword123!
+
+# Corporate Users
+dn: uid=john.doe,ou=CorporateUsers,dc=enterprise,dc=corp
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: john.doe
+cn: John Doe
+sn: Doe
+givenName: John
+mail: john.doe@enterprise.com
+userPassword: Password123!
+
+dn: uid=jane.admin,ou=CorporateUsers,dc=enterprise,dc=corp
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: jane.admin
+cn: Jane Admin
+sn: Admin
+givenName: Jane
+mail: jane.admin@enterprise.com
+userPassword: Password123!
+
+# Security Groups
+dn: cn=Admins,ou=SecurityGroups,dc=enterprise,dc=corp
+objectClass: top
+objectClass: groupOfNames
+cn: Admins
+member: uid=jane.admin,ou=CorporateUsers,dc=enterprise,dc=corp
+
+dn: cn=Developers,ou=SecurityGroups,dc=enterprise,dc=corp
+objectClass: top
+objectClass: groupOfNames
+cn: Developers
+member: uid=john.doe,ou=CorporateUsers,dc=enterprise,dc=corp

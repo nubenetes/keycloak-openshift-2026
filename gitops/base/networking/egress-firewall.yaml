@@ -1,0 +1,35 @@
+apiVersion: k8s.ovn.org/v1
+kind: EgressFirewall
+metadata:
+  name: default
+  namespace: keycloak
+spec:
+  egress:
+    # 1. Allow outbound traffic to Microsoft Entra ID (Azure AD SSO & Graph API)
+    - type: Allow
+      to:
+        dnsName: login.microsoftonline.com
+    - type: Allow
+      to:
+        dnsName: graph.microsoft.com
+    - type: Allow
+      to:
+        dnsName: sts.windows.net
+
+    # 2. Allow outbound traffic to AWS STS and AWS Secrets Manager
+    - type: Allow
+      to:
+        dnsName: sts.eu-west-1.amazonaws.com
+    - type: Allow
+      to:
+        dnsName: secretsmanager.eu-west-1.amazonaws.com
+
+    # 3. Allow outbound LDAPS to Corporate On-Premises Active Directory (CIDR)
+    - type: Allow
+      to:
+        cidrSelector: 10.100.0.0/16
+
+    # 4. Strictly Deny all other outbound Internet traffic (Zero-Trust)
+    - type: Deny
+      to:
+        cidrSelector: 0.0.0.0/0
