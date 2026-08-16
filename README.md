@@ -97,6 +97,7 @@
 - [14. Disaster Recovery & Multi-Region Cross-Site Replication](#14-disaster-recovery--multi-region-cross-site-replication)
 - [15. Verification & End-to-End Validation](#15-verification--end-to-end-validation)
 - [16. Up-to-Date References & Standards (2026)](#16-up-to-date-references--standards-2026)
+- [17. Authors & Contributors](#17-authors--contributors)
 
 ---
 
@@ -470,3 +471,17 @@ Detailed guide available in [`docs/DISASTER_RECOVERY_CROSS_SITE.md`](docs/DISAST
 - [Microsoft Entra ID OpenID Connect Authentication](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc)
 - [Microsoft Entra ID Group Claims and App Roles](https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims)
 - [Microsoft Entra Cloud Sync Architecture](https://learn.microsoft.com/en-us/entra/identity/hybrid/cloud-sync/what-is-cloud-sync)
+
+---
+
+## 17. Authors & Contributors
+
+| Contributor | Role | Profile / Identity |
+| :--- | :--- | :--- |
+| **Inaki** | Architecture Design & Platform Engineering | [@inafev](https://github.com/inafev) |
+| **Gemini 3.7 Flash High** | Agentic AI Coding & Manifest Generation | [Google DeepMind / Antigravity](https://deepmind.google/technologies/gemini/) |
+
+<p align="left">
+  <sub>This repository follows GitHub co-authorship standards and was co-engineered with Google DeepMind's Gemini 3.7 Flash High Agentic AI.</sub>
+</p>
+
