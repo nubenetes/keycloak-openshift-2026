@@ -1,0 +1,16 @@
+data:
+  policy.default: role:readonly
+  policy.csv: |
+    # Policy definitions mapping Keycloak groups to ArgoCD roles
+    g, /Admins, role:admin
+    g, /Platform-Engineers, role:admin
+    g, /Developers, role:developer
+    g, /SecOps, role:readonly
+
+    # Role definition for developer (Sync/Get on dev and stage clusters)
+    p, role:developer, applications, get, */*, allow
+    p, role:developer, applications, sync, dev-*/*, allow
+    p, role:developer, applications, sync, stage-*/*, allow
+    p, role:developer, logs, get, */*, allow
+    p, role:developer, exec, create, dev-*/*, allow
+  scopes: '[groups, email]'

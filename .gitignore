@@ -1,0 +1,48 @@
+# Environments and OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.bak
+
+# Node & Frontend
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Java & Quarkus
+target/
+*.class
+*.jar
+*.war
+.mvn/
+.gradle/
+build/
+
+# Terraform / Cloud
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+
+# Kubernetes / Local state
+*.kubeconfig
+*.local.yaml
+*.local.sh
+.env
+.env.local
+secrets/
+*.key
+*.pem
+*.pfx
+*.keystore
+
+# Temporary test logs
+*.log
+test-results/

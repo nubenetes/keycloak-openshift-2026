@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: keycloak
+
+resources:
+  - ../../base
+
+patches:
+  - target:
+      group: k8s.keycloak.org
+      version: v2alpha1
+      kind: Keycloak
+      name: keycloak-enterprise
+    patch: |-
+      - op: replace
+        path: /spec/instances
+        value: 1
+      - op: replace
+        path: /spec/hostname/hostname
+        value: keycloak-dev.apps.cluster-alpha.aws.enterprise.com
+      - op: replace
+        path: /spec/resources/requests/cpu
+        value: "500m"
+      - op: replace
+        path: /spec/resources/requests/memory
+        value: "1024Mi"
+  - target:
+      group: route.openshift.io
+      version: v1
+      kind: Route
+      name: keycloak
+    patch: |-
+      - op: replace
+        path: /spec/host
+        value: keycloak-dev.apps.cluster-alpha.aws.enterprise.com

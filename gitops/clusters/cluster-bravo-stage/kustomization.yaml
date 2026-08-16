@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: keycloak
+
+resources:
+  - ../../base
+
+patches:
+  - target:
+      group: k8s.keycloak.org
+      version: v2alpha1
+      kind: Keycloak
+      name: keycloak-enterprise
+    patch: |-
+      - op: replace
+        path: /spec/instances
+        value: 2
+      - op: replace
+        path: /spec/hostname/hostname
+        value: keycloak-stage.apps.cluster-bravo.aws.enterprise.com
+  - target:
+      group: route.openshift.io
+      version: v1
+      kind: Route
+      name: keycloak
+    patch: |-
+      - op: replace
+        path: /spec/host
+        value: keycloak-stage.apps.cluster-bravo.aws.enterprise.com

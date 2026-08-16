@@ -1,0 +1,77 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: keycloak-service-monitor
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/part-of: enterprise-iam
+spec:
+  selector:
+    matchLabels:
+      app: keycloak
+  endpoints:
+    - port: management
+      path: /metrics
+      interval: 15s
+      scheme: HTTPS
+      tlsConfig:
+        insecureSkipVerify: true
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: keycloak-slo-alerts
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/part-of: enterprise-iam
+    role: alert-rules
+spec:
+  groups:
+    - name: keycloak-health.rules
+      rules:
+        - alert: KeycloakHighHttp5xxRate
+          expr: |
+            (sum(rate(http_server_requests_seconds_count{namespace="keycloak",status=~"5.."}[5m]))
+            /
+            sum(rate(http_server_requests_seconds_count{namespace="keycloak"}[5m]))) * 100 > 5
+          for: 2m
+          labels:
+            severity: critical
+            tier: identity-provider
+          annotations:
+            summary: "High HTTP 5xx error rate on Keycloak (> 5%)"
+            description: "Keycloak cluster in namespace {{ $labels.namespace }} is returning > 5% HTTP 5xx responses for 2 consecutive minutes."
+
+        - alert: KeycloakDatabaseConnectionPoolNearExhaustion
+          expr: |
+            (agroal_active_count{namespace="keycloak"} / agroal_max_count{namespace="keycloak"}) * 100 > 85
+          for: 3m
+          labels:
+            severity: warning
+            tier: database
+          annotations:
+            summary: "Keycloak Agroal DB Connection Pool > 85% utilized"
+            description: "Active database connections on pod {{ $labels.pod }} are reaching pool saturation."
+
+        - alert: KeycloakJGroupsCrossSiteReplicationLag
+          expr: |
+            jgroups_relay2_route_status{namespace="keycloak"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            tier: replication
+          annotations:
+            summary: "Keycloak JGroups Cross-Site Replication Down"
+            description: "WAN cross-site route between OpenShift clusters is reported DOWN."
+
+        - alert: KeycloakPodCrashLooping
+          expr: |
+            rate(kube_pod_container_status_restarts_total{namespace="keycloak"}[10m]) * 600 > 3
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Keycloak Pod is restarting frequently"
+            description: "Pod {{ $labels.pod }} restarted more than 3 times in the last 10 minutes."

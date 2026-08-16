@@ -1,0 +1,11 @@
+data:
+  url: https://argocd.apps.cluster-charlie.aws.enterprise.com
+  oidc.config: |
+    name: Keycloak Enterprise SSO
+    issuer: https://sso.enterprise.example.com/realms/enterprise
+    clientID: argocd
+    clientSecret: $keycloak-client-secret:argocd-secret
+    requestedScopes: ["openid", "profile", "email", "groups"]
+    requestedIDTokenClaims:
+      groups:
+        essential: true

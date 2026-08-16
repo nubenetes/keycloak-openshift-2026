@@ -1,0 +1,44 @@
+app:
+  title: Enterprise Internal Developer Platform (IDP)
+  baseUrl: https://backstage.apps.cluster-charlie.aws.enterprise.com
+
+backend:
+  baseUrl: https://backstage.apps.cluster-charlie.aws.enterprise.com
+  listen:
+    port: 7007
+  cors:
+    origin: https://backstage.apps.cluster-charlie.aws.enterprise.com
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+  auth:
+    keys:
+      - secret: ${AUTH_SESSION_SECRET}
+
+auth:
+  environment: production
+  providers:
+    oidc:
+      production:
+        metadataUrl: https://sso.enterprise.example.com/realms/enterprise/.well-known/openid-configuration
+        clientId: backstage-idp
+        clientSecret: ${BACKSTAGE_CLIENT_SECRET}
+        prompt: auto
+        scope: 'openid profile email groups'
+        signIn:
+          resolvers:
+            - resolver: emailMatchingUserEntityProfileEmail
+            - resolver: emailLocalPartMatchingUserEntityName
+            - resolver: preferredUsernameMatchingUserEntityName
+
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+  rules:
+    - allow: [Component, System, API, Resource, Location, Template, User, Group]

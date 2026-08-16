@@ -1,0 +1,39 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: keycloak-alerts
+  namespace: keycloak
+  labels:
+    role: alert-rules
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/part-of: enterprise-iam
+spec:
+  groups:
+    - name: keycloak-production-slo
+      rules:
+        - alert: KeycloakDown
+          expr: up{namespace="keycloak",job=~".*keycloak.*"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Keycloak Pod is down"
+            description: "Keycloak instance in pod {{ $labels.pod }} is not responding to scrape probes."
+
+        - alert: KeycloakHigh5xxErrorRate
+          expr: (sum(rate(http_server_requests_seconds_count{namespace="keycloak",status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count{namespace="keycloak"}[5m]))) * 100 > 5
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Keycloak HTTP 5xx error rate exceeds 5%"
+            description: "High error rate observed on realm authentication endpoints."
+
+        - alert: KeycloakDatabasePoolExhaustion
+          expr: (agroal_active_count{namespace="keycloak"} / agroal_max_count{namespace="keycloak"}) * 100 > 90
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Keycloak DB connection pool > 90%"
+            description: "PostgreSQL Agroal connection pool in {{ $labels.pod }} is nearly exhausted."

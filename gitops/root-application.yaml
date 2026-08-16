@@ -1,0 +1,57 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: keycloak-multi-cluster
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/name: keycloak-multi-cluster
+    app.kubernetes.io/part-of: enterprise-iam
+spec:
+  generators:
+    - list:
+        elements:
+          - clusterName: cluster-alpha-dev
+            clusterServer: https://api.cluster-alpha.aws.enterprise.com:6443
+            environment: dev
+            path: gitops/clusters/cluster-alpha-dev
+            replicas: 1
+          - clusterName: cluster-bravo-stage
+            clusterServer: https://api.cluster-bravo.aws.enterprise.com:6443
+            environment: stage
+            path: gitops/clusters/cluster-bravo-stage
+            replicas: 2
+          - clusterName: cluster-charlie-prod
+            clusterServer: https://api.cluster-charlie.aws.enterprise.com:6443
+            environment: prod
+            path: gitops/clusters/cluster-charlie-prod
+            replicas: 3
+  template:
+    metadata:
+      name: 'keycloak-{{clusterName}}'
+      labels:
+        environment: '{{environment}}'
+        app: keycloak
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/nubenetes/keycloak-openshift-2026.git'
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: '{{clusterServer}}'
+        namespace: keycloak
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+          - RespectIgnoreDifferences=true
+          - ServerSideApply=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 10s
+            factor: 2
+            maxDuration: 3m

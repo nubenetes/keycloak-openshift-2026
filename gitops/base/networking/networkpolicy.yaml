@@ -1,0 +1,96 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: keycloak
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/part-of: enterprise-iam
+  annotations:
+    haproxy.router.openshift.io/timeout: "60s"
+    haproxy.router.openshift.io/hsts_header: "max-age=31536000;includeSubDomains;preload"
+    router.openshift.io/cookie_same_site: "Strict"
+spec:
+  host: sso.enterprise.example.com
+  to:
+    kind: Service
+    name: keycloak-service
+    weight: 100
+  port:
+    targetPort: https
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keycloak-ingress-isolation
+  namespace: keycloak
+spec:
+  podSelector:
+    matchLabels:
+      app: keycloak
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from OpenShift Ingress Router
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: ingress
+      ports:
+        - protocol: TCP
+          port: 8443
+    # Allow OpenShift User Workload Monitoring to scrape /metrics
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: monitoring
+      ports:
+        - protocol: TCP
+          port: 9000
+    # Allow intra-cluster JGroups/Infinispan clustering traffic
+    - from:
+        - podSelector:
+            matchLabels:
+              app: keycloak
+      ports:
+        - protocol: TCP
+          port: 7800
+        - protocol: TCP
+          port: 57800
+  egress:
+    # Allow egress to PostgreSQL in keycloak namespace
+    - to:
+        - podSelector:
+            matchLabels:
+              postgres-operator.crunchydata.com/cluster: keycloak-db
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow outbound HTTPS to Azure Entra ID / Microsoft Graph / AWS STS / External IdPs
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 636 # LDAPS

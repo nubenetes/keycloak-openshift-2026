@@ -1,0 +1,286 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakRealmImport
+metadata:
+  name: enterprise-realm-import
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/part-of: enterprise-iam
+spec:
+  keycloakCRName: keycloak-enterprise
+  realm:
+    id: enterprise
+    realm: enterprise
+    displayName: "Enterprise Identity & Access Management (2026)"
+    enabled: true
+    sslRequired: "all"
+    registrationAllowed: false
+    loginWithEmailAllowed: true
+    duplicateEmailsAllowed: false
+    resetPasswordAllowed: true
+    editUsernameAllowed: false
+    bruteForceProtected: true
+    failureFactor: 5
+    waitIncrementSeconds: 60
+    quickLoginCheckMilliSeconds: 1000
+    minimumQuickLoginWaitSeconds: 60
+    maxFailureWaitSeconds: 900
+    maxDeltaTimeSeconds: 43200
+
+    # OAuth 2.1 & OIDC Token Lifespans & Security Settings
+    accessTokenLifespan: 300 # 5 minutes
+    accessTokenLifespanForImplicitFlow: 0 # Disabled - Implicit Grant Prohibited
+    ssoSessionIdleTimeout: 1800 # 30 minutes
+    ssoSessionMaxLifespan: 36000 # 10 hours
+    offlineSessionIdleTimeout: 2592000 # 30 days
+    clientSessionIdleTimeout: 1800
+    clientSessionMaxLifespan: 36000
+    defaultSignatureAlgorithm: "RS256"
+
+    # Identity Providers (Microsoft Entra ID / Azure AD OIDC Brokering)
+    identityProviders:
+      - alias: "azure-entra-id"
+        displayName: "Microsoft Entra ID (Corporate SSO)"
+        providerId: "oidc"
+        enabled: true
+        trustEmail: true
+        storeToken: false
+        addReadTokenRoleOnCreate: false
+        authenticateByDefault: false
+        firstBrokerLoginFlowAlias: "first broker login"
+        config:
+          clientId: "00000000-0000-0000-0000-000000000000"
+          clientSecret: "CHANGE_ME_ENTRA_CLIENT_SECRET"
+          clientAuthMethod: "client_secret_post"
+          authorizationUrl: "https://login.microsoftonline.com/YOUR_TENANT_ID/oauth2/v2.0/authorize"
+          tokenUrl: "https://login.microsoftonline.com/YOUR_TENANT_ID/oauth2/v2.0/token"
+          jwksUrl: "https://login.microsoftonline.com/YOUR_TENANT_ID/discovery/v2.0/keys"
+          issuer: "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0"
+          defaultScope: "openid profile email offline_access User.Read"
+          useJwksUrl: "true"
+          validateSignature: "true"
+          pkceEnabled: "true"
+          pkceMethod: "S256"
+        mappers:
+          - name: "entra-upn-to-username"
+            identityProviderAlias: "azure-entra-id"
+            identityProviderMapper: "oidc-user-attribute-idp-mapper"
+            config:
+              claim: "preferred_username"
+              user.attribute: "username"
+          - name: "entra-email-mapper"
+            identityProviderAlias: "azure-entra-id"
+            identityProviderMapper: "oidc-user-attribute-idp-mapper"
+            config:
+              claim: "email"
+              user.attribute: "email"
+          - name: "entra-roles-mapper"
+            identityProviderAlias: "azure-entra-id"
+            identityProviderMapper: "oidc-advanced-role-idp-mapper"
+            config:
+              claims: '[{"key":"roles","value":"CloudAdmins"}]'
+              role: "devops-engineer"
+
+    # User Federation (On-Premises Active Directory via LDAPS)
+    userFederationProviders:
+      - displayName: "onprem-active-directory"
+        providerName: "ldap"
+        priority: 0
+        config:
+          vendor: "ad"
+          connectionUrl: "ldaps://ad.enterprise.corp:636"
+          usersDn: "OU=CorporateUsers,DC=enterprise,DC=corp"
+          bindDn: "CN=svc-keycloak,OU=ServiceAccounts,DC=enterprise,DC=corp"
+          bindCredential: "CHANGE_ME_AD_BIND_PASSWORD"
+          editMode: "READ_ONLY"
+          syncRegistrations: "false"
+          authType: "simple"
+          searchScope: "1"
+          useTruststoreSpi: "always"
+          connectionPooling: "true"
+          pagination: "true"
+          batchSizeForSync: "1000"
+          periodicFullSync: "86400"
+          periodicChangedUsersSync: "3600"
+          usernameLDAPAttribute: "sAMAccountName"
+          rdnLDAPAttribute: "cn"
+          uuidLDAPAttribute: "objectGUID"
+          userObjectClasses: "person, organizationalPerson, user"
+
+    # User Federation Mappers
+    userFederationMappers:
+      - name: "ad-group-mapper"
+        federationProviderDisplayName: "onprem-active-directory"
+        federationMapperType: "group-ldap-mapper"
+        config:
+          groups.dn: "OU=SecurityGroups,DC=enterprise,DC=corp"
+          group.name.ldap.attribute: "cn"
+          group.object.classes: "group"
+          preserve.group.inheritance: "true"
+          membership.ldap.attribute: "member"
+          membership.attribute.type: "DN"
+          membership.user.ldap.attribute: "sAMAccountName"
+          mode: "READ_ONLY"
+          user.roles.retrieve.strategy: "LOAD_GROUPS_BY_MEMBER_ATTRIBUTE"
+
+    # Roles Definition
+    roles:
+      realm:
+        - name: "realm-admin"
+          description: "Full administrator for Enterprise Realm"
+        - name: "devops-engineer"
+          description: "Platform & DevOps Engineers with cluster and CI/CD admin permissions"
+        - name: "security-auditor"
+          description: "Security & Compliance read-only auditors"
+        - name: "platform-developer"
+          description: "Application Developer with microservice deployment access"
+        - name: "argocd-admin"
+          description: "ArgoCD full administrative rights"
+        - name: "argocd-read"
+          description: "ArgoCD read-only access"
+        - name: "backstage-user"
+          description: "Internal Developer Platform portal user"
+        - name: "api-consumer"
+          description: "Authorized service principal for microservice APIs"
+
+    # Groups Definition
+    groups:
+      - name: "Admins"
+        path: "/Admins"
+        realmRoles: ["realm-admin", "argocd-admin", "devops-engineer"]
+      - name: "Developers"
+        path: "/Developers"
+        realmRoles: ["platform-developer", "argocd-read", "backstage-user"]
+      - name: "SecOps"
+        path: "/SecOps"
+        realmRoles: ["security-auditor"]
+
+    # Client Scopes
+    clientScopes:
+      - name: "groups"
+        description: "OpenID Connect scope mapping user groups"
+        protocol: "openid-connect"
+        attributes:
+          include.in.token.scope: "true"
+          display.on.consent.screen: "true"
+        protocolMappers:
+          - name: "group-membership"
+            protocol: "openid-connect"
+            protocolMapper: "oidc-group-membership-mapper"
+            consentRequired: false
+            config:
+              full.path: "false"
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              claim.name: "groups"
+
+      - name: "microservices.read"
+        description: "Read scope for backend microservices"
+        protocol: "openid-connect"
+      - name: "microservices.write"
+        description: "Write scope for backend microservices"
+        protocol: "openid-connect"
+
+    # Clients (OAuth 2.1 / OIDC Compliant)
+    clients:
+      # 1. ArgoCD GitOps UI (Authorization Code Flow + PKCE)
+      - clientId: "argocd"
+        name: "ArgoCD GitOps Portal"
+        enabled: true
+        protocol: "openid-connect"
+        publicClient: false
+        secret: "CHANGE_ME_ARGOCD_CLIENT_SECRET"
+        standardFlowEnabled: true
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+        redirectUris:
+          - "https://argocd.apps.*.aws.enterprise.com/auth/callback"
+          - "https://localhost:8085/auth/callback"
+        webOrigins:
+          - "https://argocd.apps.*.aws.enterprise.com"
+        defaultClientScopes:
+          - "openid"
+          - "profile"
+          - "email"
+          - "groups"
+
+      # 2. Backstage Internal Developer Portal (Auth Code + PKCE + Service Account)
+      - clientId: "backstage-idp"
+        name: "Backstage Developer Portal"
+        enabled: true
+        protocol: "openid-connect"
+        publicClient: false
+        secret: "CHANGE_ME_BACKSTAGE_CLIENT_SECRET"
+        standardFlowEnabled: true
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: true
+        redirectUris:
+          - "https://backstage.apps.*.aws.enterprise.com/api/auth/oidc/handler/frame"
+        webOrigins:
+          - "https://backstage.apps.*.aws.enterprise.com"
+        defaultClientScopes:
+          - "openid"
+          - "profile"
+          - "email"
+          - "groups"
+
+      # 3. Angular 18+ Single Page Application (Public Client with Strict PKCE + S256)
+      - clientId: "angular-spa"
+        name: "Enterprise Angular Single Page App"
+        enabled: true
+        protocol: "openid-connect"
+        publicClient: true
+        standardFlowEnabled: true
+        implicitFlowEnabled: false # Strictly Prohibited in OAuth 2.1
+        directAccessGrantsEnabled: false # Strictly Prohibited in OAuth 2.1
+        serviceAccountsEnabled: false
+        attributes:
+          pkce.code.challenge.method: "S256"
+          post.logout.redirect.uris: "https://portal.apps.*.aws.enterprise.com/*##http://localhost:4200/*"
+        redirectUris:
+          - "https://portal.apps.*.aws.enterprise.com/*"
+          - "http://localhost:4200/*"
+        webOrigins:
+          - "https://portal.apps.*.aws.enterprise.com"
+          - "http://localhost:4200"
+        defaultClientScopes:
+          - "openid"
+          - "profile"
+          - "email"
+          - "groups"
+          - "microservices.read"
+
+      # 4. API Gateway / Service-to-Service (Client Credentials with Private Key JWT RFC 7523)
+      - clientId: "microservices-gateway"
+        name: "Microservices Edge API Gateway"
+        enabled: true
+        protocol: "openid-connect"
+        publicClient: false
+        clientAuthenticatorType: "client-jwt" # RFC 7523 Private Key JWT
+        standardFlowEnabled: false
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: true
+        attributes:
+          jwt.credential.certificate: "CHANGE_ME_OR_USE_JWKS_URL"
+        defaultClientScopes:
+          - "microservices.read"
+          - "microservices.write"
+
+      # 5. Quarkus Microservice Resource Server (Bearer-only + Token Exchange RFC 8693)
+      - clientId: "quarkus-api-service"
+        name: "Quarkus Backend Core Service"
+        enabled: true
+        protocol: "openid-connect"
+        bearerOnly: false
+        publicClient: false
+        secret: "CHANGE_ME_QUARKUS_CLIENT_SECRET"
+        serviceAccountsEnabled: true
+        attributes:
+          token.exchange.permit: "true"
+        defaultClientScopes:
+          - "microservices.read"
+          - "microservices.write"

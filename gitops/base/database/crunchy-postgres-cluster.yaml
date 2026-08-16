@@ -1,0 +1,86 @@
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: keycloak-db
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/name: keycloak-db
+    app.kubernetes.io/part-of: enterprise-iam
+spec:
+  image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres:ubi9-16.2-0
+  postgresVersion: 16
+  instances:
+    - name: instance1
+      replicas: 2
+      dataVolumeClaimSpec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 50Gi
+        storageClassName: gp3-csi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: postgres-operator.crunchydata.com/cluster
+                      operator: In
+                      values:
+                        - keycloak-db
+                topologyKey: topology.kubernetes.io/zone
+  users:
+    - name: keycloak
+      databases:
+        - keycloak
+      options: "SUPERUSER"
+  backups:
+    pgbackrest:
+      image: registry.developers.crunchydata.com/crunchydata/crunchy-pgbackrest:ubi9-2.50-0
+      repos:
+        - name: repo1
+          volume:
+            volumeClaimSpec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 50Gi
+              storageClassName: gp3-csi
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: keycloak-db-secret
+  namespace: keycloak
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-secretsmanager
+    kind: ClusterSecretStore
+  target:
+    name: keycloak-db-secret
+    creationPolicy: Owner
+  data:
+    - secretKey: username
+      remoteRef:
+        key: enterprise/keycloak/database
+        property: username
+    - secretKey: password
+      remoteRef:
+        key: enterprise/keycloak/database
+        property: password
+    - secretKey: host
+      remoteRef:
+        key: enterprise/keycloak/database
+        property: host
+    - secretKey: port
+      remoteRef:
+        key: enterprise/keycloak/database
+        property: port
+    - secretKey: database
+      remoteRef:
+        key: enterprise/keycloak/database
+        property: database
