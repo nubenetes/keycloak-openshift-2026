@@ -2,12 +2,13 @@
 ### Enterprise Multi-Cluster Identity & Access Management with Microsoft Entra ID, Active Directory & OAuth 2.1
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/keycloak/keycloak-admin-ui/main/docs/keycloak_logo.png" alt="Keycloak Logo" width="220" />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Keycloak_Logo.png" alt="Keycloak Logo" width="280" />
 </p>
 
 <p align="center">
   <!-- Core Identity & Platform -->
-  <a href="https://access.redhat.com/products/red-hat-build-of-keycloak"><img src="https://img.shields.io/badge/RHBK-Keycloak%2024%2B%20%2F%2026%20(Quarkus)-blueviolet?style=flat-square&logo=redhat&logoColor=white" alt="RHBK" /></a>
+  <a href="https://access.redhat.com/products/red-hat-build-of-keycloak"><img src="https://img.shields.io/badge/Red%20Hat%20Build%20of%20Keycloak-24%2B%20%2F%2026%20(Quarkus)-EE0000?style=flat-square&logo=redhat&logoColor=white" alt="RHBK" /></a>
+  <a href="https://www.keycloak.org/"><img src="https://img.shields.io/badge/Keycloak-v24%20%2F%20v26-blueviolet?style=flat-square&logo=keycloak&logoColor=white" alt="Keycloak" /></a>
   <a href="https://docs.redhat.com/en/documentation/openshift_container_platform/4.20"><img src="https://img.shields.io/badge/OpenShift-4.20%2B-red?style=flat-square&logo=redhatopenshift&logoColor=white" alt="OpenShift" /></a>
   <a href="https://kubernetes.io/"><img src="https://img.shields.io/badge/Kubernetes-v1.31%2B-326ce5?style=flat-square&logo=kubernetes&logoColor=white" alt="Kubernetes" /></a>
   <a href="https://aws.amazon.com/rosa/"><img src="https://img.shields.io/badge/AWS-ROSA%20%2F%20IPI-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white" alt="AWS" /></a>
