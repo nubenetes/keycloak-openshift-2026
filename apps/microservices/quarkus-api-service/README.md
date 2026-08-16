@@ -16,14 +16,14 @@ sequenceDiagram
     participant Frontend as Angular SPA / BFF
     participant Gateway as Quarkus API Service
     participant KC as Keycloak (RHBK)
-    participant Downstream as Downstream Payment Service
+    participant Downstream as Payment Service
 
-    User->>Frontend: Initiate Checkout Action
-    Frontend->>Gateway: POST /api/v1/workloads (Bearer UserToken)
-    Gateway->>Gateway: Validate UserToken via JWKS & check @RolesAllowed
-    Gateway->>KC: POST /token (grant_type=token-exchange, subject_token=UserToken, audience=payment-service)
-    KC->>KC: Verify Token Exchange permissions & generate new scoped JWT
-    KC-->>Gateway: Return DownstreamToken (audience=payment-service, original caller preserved)
+    User->>Frontend: Initiate Checkout
+    Frontend->>Gateway: POST /workloads (Bearer UserToken)
+    Gateway->>Gateway: Validate UserToken via JWKS &<br/>check @RolesAllowed
+    Gateway->>KC: POST /token (grant_type=token-exchange,<br/>subject_token=UserToken, aud=payment-service)
+    KC->>KC: Verify Policy & Generate Scoped JWT
+    KC-->>Gateway: Return DownstreamToken (aud: payment-service)
     Gateway->>Downstream: POST /process-payment (Bearer DownstreamToken)
     Downstream-->>Gateway: 200 OK Payment Processed
     Gateway-->>Frontend: 200 OK Checkout Success

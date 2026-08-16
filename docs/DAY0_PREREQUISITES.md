@@ -20,20 +20,20 @@ This runbook describes the Day 0 infrastructure, networking, certificate, and da
 
 ```mermaid
 graph TD
-    A[Cluster Deployment OCP 4.20+] --> B[Enable User Workload Monitoring]
-    B --> C[Create keycloak Namespace]
-    C --> D[Apply NetworkPolicies & Ingress Lockdown]
-    D --> E[Provision PostgreSQL Database & Secrets]
-    E --> F[Generate / Inject TLS Certificates]
-    F --> G[Ready for Day 1 Operator Deployment]
+    A["<b>1. Deploy Cluster</b><br/>OpenShift 4.20+"] --> B["<b>2. Enable Monitoring</b><br/>User Workload"]
+    B --> C["<b>3. Create Namespace</b><br/>keycloak"]
+    C --> D["<b>4. Enforce Policies</b><br/>Network Isolation"]
+    D --> E["<b>5. Provision DB</b><br/>PostgreSQL & Secrets"]
+    E --> F["<b>6. Inject TLS</b><br/>Edge/Re-encrypt Certs"]
+    F --> G["<b>7. Ready for Day 1</b><br/>Operator Deployment"]
 
-    style A fill:#e0f2fe,stroke:#0284c7,stroke-width:2px;
-    style B fill:#e0f2fe,stroke:#0284c7,stroke-width:2px;
-    style C fill:#fef3c7,stroke:#d97706,stroke-width:2px;
-    style D fill:#fef3c7,stroke:#d97706,stroke-width:2px;
-    style E fill:#f0fdf4,stroke:#16a34a,stroke-width:2px;
-    style F fill:#f0fdf4,stroke:#16a34a,stroke-width:2px;
-    style G fill:#dcfce7,stroke:#166534,stroke-width:3px;
+    style A fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
+    style B fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
+    style C fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a;
+    style D fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a;
+    style E fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#0f172a;
+    style F fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#0f172a;
+    style G fill:#dcfce7,stroke:#166534,stroke-width:3px,color:#0f172a;
 ```
 
 ---

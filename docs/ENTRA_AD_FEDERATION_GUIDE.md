@@ -24,18 +24,18 @@ This guide details how to integrate Red Hat Build of Keycloak with **Microsoft E
 sequenceDiagram
     autonumber
     actor Employee as Enterprise User
-    participant App as OpenShift App (e.g. Backstage / ArgoCD)
+    participant App as OpenShift App<br/>(Backstage / ArgoCD)
     participant KC as Keycloak (RHBK)
-    participant Entra as Microsoft Entra ID (Azure AD)
-    participant AD as On-Prem Active Directory
+    participant Entra as Microsoft Entra ID<br/>(Azure AD)
+    participant AD as On-Premises AD<br/>(LDAPS)
 
-    App->>KC: Redirect to /protocol/openid-connect/auth
-    KC->>Entra: Federate login via Entra OIDC endpoint
-    Entra->>Entra: Enforce Conditional Access & Windows Hello / FIDO2 MFA
-    Entra-->>KC: Return ID Token with Entra claims (UPN, email, groups, roles)
-    KC->>KC: Execute Identity Provider Mappers (Entra -> Keycloak roles)
+    App->>KC: Redirect to /auth (PKCE)
+    KC->>Entra: Federate login via Entra OIDC
+    Entra->>Entra: Enforce Conditional Access &<br/>Corporate MFA / FIDO2
+    Entra-->>KC: Return ID Token (UPN, email, groups)
+    KC->>KC: Execute IdP Mappers<br/>(Entra claims to Keycloak roles)
     opt Active Directory User Federation
-        KC->>AD: Query LDAPS for extended attributes / on-prem groups
+        KC->>AD: Query LDAPS for on-prem<br/>attributes & security groups
         AD-->>KC: Return LDAP attributes
     end
     KC-->>App: Issue signed Enterprise Keycloak JWT

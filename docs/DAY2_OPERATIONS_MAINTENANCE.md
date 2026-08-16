@@ -8,20 +8,20 @@ This runbook describes day-to-day operations, declarative configuration updates,
 
 ```mermaid
 graph LR
-    subgraph Day2["Day 2 Operations"]
-        Backup["Database & Realm Backup<br/>• pg_dump / pgBackRest S3<br/>• Declarative Realm Export"]
-        Monitor["Observability<br/>• Prometheus / Grafana<br/>• SLO Alerting Rules"]
-        Scale["Elastic Scaling<br/>• HorizontalPodAutoscaler<br/>• CPU/Memory Targets"]
-        Upgrade["Zero-Downtime Rolling Upgrades<br/>• Session Preservation<br/>• Operator CSV Updates"]
+    subgraph Day2["Day 2 Lifecycle"]
+        Backup["<b>Backups</b><br/>pg_dump / pgBackRest<br/>Declarative Export"]
+        Monitor["<b>Observability</b><br/>Prometheus & Grafana<br/>SLO Alert Rules"]
+        Scale["<b>Autoscaling</b><br/>HPA CPU/Memory<br/>Elastic Scaling"]
+        Upgrade["<b>Rolling Upgrades</b><br/>Session Preservation<br/>Operator Updates"]
     end
 
     Backup --> Monitor --> Scale --> Upgrade
 
-    style Day2 fill:#f8fafc,stroke:#334155,stroke-width:2px;
-    style Backup fill:#dbeafe,stroke:#1e40af,stroke-width:2px;
-    style Monitor fill:#fef3c7,stroke:#b45309,stroke-width:2px;
-    style Scale fill:#dcfce7,stroke:#15803d,stroke-width:2px;
-    style Upgrade fill:#f3e8ff,stroke:#6b21a8,stroke-width:2px;
+    style Day2 fill:#f8fafc,stroke:#334155,stroke-width:2px,color:#0f172a;
+    style Backup fill:#dbeafe,stroke:#1e40af,stroke-width:2px,color:#0f172a;
+    style Monitor fill:#fef3c7,stroke:#b45309,stroke-width:2px,color:#0f172a;
+    style Scale fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#0f172a;
+    style Upgrade fill:#f3e8ff,stroke:#6b21a8,stroke-width:2px,color:#0f172a;
 ```
 
 ---

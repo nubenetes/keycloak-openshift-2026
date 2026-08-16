@@ -8,56 +8,54 @@ This document outlines the multi-cluster identity architecture deployed across 3
 
 ```mermaid
 graph TD
-    subgraph Corporate_Identity["Corporate Identity Layer (Hybrid)"]
-        Entra["Microsoft Entra ID (Azure AD)<br/>• Cloud Users & Groups<br/>• Conditional Access / MFA<br/>• Enterprise App Registrations"]
-        AD["On-Premises Active Directory<br/>• Windows Server Kerberos/LDAPS<br/>• Corporate Domain Accounts"]
-        EntraConnect["Entra Cloud Sync / Connect<br/>Hybrid Identity Synchronization"]
-        AD <-->|DirSync / Password Hash| EntraConnect
-        EntraConnect <-->|Sync| Entra
+    subgraph CorpID["Corporate Identity Layer (Hybrid)"]
+        Entra["<b>Microsoft Entra ID</b><br/>Cloud Users & Groups<br/>Conditional Access & MFA<br/>App Registrations"]
+        AD["<b>Active Directory</b><br/>On-Premises LDAPS<br/>Domain User Accounts"]
+        EntraSync["<b>Entra Cloud Sync</b><br/>Hybrid DirSync Engine"]
+        AD <-->|Password Hash Sync| EntraSync
+        EntraSync <-->|OIDC Provisioning| Entra
     end
 
-    subgraph Hub_Cluster["(Optional) Central Identity Hub (OCP Cluster-Hub)"]
-        HubKC["Central Parent Keycloak<br/>(Master Broker & Policy Engine)"]
-        HubDB[("AWS Aurora PostgreSQL<br/>Global Multi-Region")]
+    subgraph HubCluster["(Optional) Central Identity Hub (OCP)"]
+        HubKC["<b>Parent Keycloak (RHBK)</b><br/>Central Broker & Policy Engine"]
+        HubDB[("<b>AWS Aurora DB</b><br/>Global PostgreSQL")]
         HubKC <--> HubDB
     end
 
-    subgraph AWS_Spoke_Clusters["OpenShift 4.20+ Spoke Clusters (AWS)"]
-        subgraph Cluster1["Cluster 1: Alpha (Dev)"]
-            KC1["RHBK Operator<br/>Keycloak Instance (1 replica)"]
-            Apps1["ArgoCD / Backstage / Dev Apps"]
-            KC1 <--> Apps1
-        end
-
-        subgraph Cluster2["Cluster 2: Bravo (Stage)"]
-            KC2["RHBK Operator<br/>Keycloak Instance (2 replicas)"]
-            Apps2["Stage Workloads & Microservices"]
-            KC2 <--> Apps2
-        end
-
-        subgraph Cluster3["Cluster 3: Charlie (Prod HA)"]
-            KC3["RHBK Operator<br/>Keycloak HA (3+ replicas, Multi-AZ)"]
-            Apps3["Production APIs & Angular SPA"]
-            KC3 <--> Apps3
-        end
+    subgraph SpokeDev["Cluster 1: Alpha (Dev)"]
+        KC1["<b>Keycloak Dev</b><br/>1 Replica"]
+        Apps1["<b>Dev Workloads</b><br/>ArgoCD & Backstage"]
+        KC1 <--> Apps1
     end
 
-    Entra -->|OIDC Brokering| HubKC
-    AD -->|LDAPS User Federation| HubKC
-    Entra -.->|Direct OIDC Brokering| KC1
-    Entra -.->|Direct OIDC Brokering| KC2
-    Entra -.->|Direct OIDC Brokering| KC3
-    HubKC -->|Hub-to-Spoke OIDC Delegation| KC1
-    HubKC -->|Hub-to-Spoke OIDC Delegation| KC2
-    HubKC -->|Hub-to-Spoke OIDC Delegation| KC3
+    subgraph SpokeStage["Cluster 2: Bravo (Stage)"]
+        KC2["<b>Keycloak Stage</b><br/>2 Replicas (HA)"]
+        Apps2["<b>Stage Workloads</b><br/>Microservices & APIs"]
+        KC2 <--> Apps2
+    end
 
-    classDef corporate fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
+    subgraph SpokeProd["Cluster 3: Charlie (Prod HA)"]
+        KC3["<b>Keycloak Prod HA</b><br/>3+ Replicas (Multi-AZ)"]
+        Apps3["<b>Production Apps</b><br/>Angular SPA & APIs"]
+        KC3 <--> Apps3
+    end
+
+    Entra -->|OIDC Federation| HubKC
+    AD -->|LDAPS Sync| HubKC
+    Entra -.->|Direct OIDC| KC1
+    Entra -.->|Direct OIDC| KC2
+    Entra -.->|Direct OIDC| KC3
+    HubKC -->|Hub Delegation| KC1
+    HubKC -->|Hub Delegation| KC2
+    HubKC -->|Hub Delegation| KC3
+
+    classDef corp fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
     classDef hub fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a;
     classDef spoke fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#0f172a;
 
-    class Entra,AD,EntraConnect corporate;
+    class Entra,AD,EntraSync corp;
     class HubKC,HubDB hub;
-    class KC1,KC2,KC3,Apps1,Apps2,Apps3 spoke;
+    class KC1,Apps1,KC2,Apps2,KC3,Apps3 spoke;
 ```
 
 ---

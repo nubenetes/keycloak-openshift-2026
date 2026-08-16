@@ -15,15 +15,15 @@ sequenceDiagram
     participant KC as Keycloak (RHBK)
 
     Dev->>BS_UI: Open Backstage Catalog
-    BS_UI->>KC: Redirect to /protocol/openid-connect/auth (clientId=backstage-idp)
-    KC-->>BS_UI: Prompt login / Entra ID Federation
+    BS_UI->>KC: Redirect to /auth (clientId=backstage-idp)
+    KC-->>BS_UI: Prompt Login / Entra ID SSO
     KC-->>BS_UI: Return Authorization Code
-    BS_UI->>BS_BE: Pass auth code to /api/auth/oidc/handler/frame
-    BS_BE->>KC: Exchange Code for Tokens (/protocol/openid-connect/token)
+    BS_UI->>BS_BE: Pass code to /api/auth/oidc/handler
+    BS_BE->>KC: Exchange Code for Tokens (/token)
     KC-->>BS_BE: Return ID Token & Access Token
-    BS_BE->>BS_BE: Resolve user identity & issue Backstage Session Token
+    BS_BE->>BS_BE: Resolve User Identity & Issue Session Token
     BS_BE-->>BS_UI: Set HttpOnly Session Cookie
-    BS_UI-->>Dev: Render Catalog Dashboard with personalized entities
+    BS_UI-->>Dev: Render Catalog Dashboard
 ```
 
 ---

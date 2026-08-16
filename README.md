@@ -61,56 +61,54 @@ Modern enterprise identity architectures require a balance between centralized g
 
 ```mermaid
 graph TD
-    subgraph Corporate_Identity["Corporate Identity Layer (Hybrid)"]
-        Entra["Microsoft Entra ID (Azure AD)<br/>• Cloud Users & Groups<br/>• Conditional Access / MFA<br/>• Enterprise App Registrations"]
-        AD["On-Premises Active Directory<br/>• Windows Server Kerberos/LDAPS<br/>• Corporate Domain Accounts"]
-        EntraConnect["Entra Cloud Sync / Connect<br/>Hybrid Identity Synchronization"]
-        AD <-->|DirSync / Password Hash| EntraConnect
-        EntraConnect <-->|Sync| Entra
+    subgraph CorpID["Corporate Identity Layer (Hybrid)"]
+        Entra["<b>Microsoft Entra ID</b><br/>Cloud Users & Groups<br/>Conditional Access & MFA<br/>App Registrations"]
+        AD["<b>Active Directory</b><br/>On-Premises LDAPS<br/>Domain User Accounts"]
+        EntraSync["<b>Entra Cloud Sync</b><br/>Hybrid DirSync Engine"]
+        AD <-->|Password Hash Sync| EntraSync
+        EntraSync <-->|OIDC Provisioning| Entra
     end
 
-    subgraph Hub_Cluster["(Optional) Central Identity Hub (OCP Cluster-Hub)"]
-        HubKC["Central Parent Keycloak<br/>(Master Broker & Policy Engine)"]
-        HubDB[("AWS Aurora PostgreSQL<br/>Global Multi-Region")]
+    subgraph HubCluster["(Optional) Central Identity Hub (OCP)"]
+        HubKC["<b>Parent Keycloak (RHBK)</b><br/>Central Broker & Policy Engine"]
+        HubDB[("<b>AWS Aurora DB</b><br/>Global PostgreSQL")]
         HubKC <--> HubDB
     end
 
-    subgraph AWS_Spoke_Clusters["OpenShift 4.20+ Spoke Clusters (AWS)"]
-        subgraph Cluster1["Cluster 1: Alpha (Dev)"]
-            KC1["RHBK Operator<br/>Keycloak Instance (1 replica)"]
-            Apps1["ArgoCD / Backstage / Dev Apps"]
-            KC1 <--> Apps1
-        end
-
-        subgraph Cluster2["Cluster 2: Bravo (Stage)"]
-            KC2["RHBK Operator<br/>Keycloak Instance (2 replicas)"]
-            Apps2["Stage Workloads & Microservices"]
-            KC2 <--> Apps2
-        end
-
-        subgraph Cluster3["Cluster 3: Charlie (Prod HA)"]
-            KC3["RHBK Operator<br/>Keycloak HA (3+ replicas, Multi-AZ)"]
-            Apps3["Production APIs & Angular SPA"]
-            KC3 <--> Apps3
-        end
+    subgraph SpokeDev["Cluster 1: Alpha (Dev)"]
+        KC1["<b>Keycloak Dev</b><br/>1 Replica"]
+        Apps1["<b>Dev Workloads</b><br/>ArgoCD & Backstage"]
+        KC1 <--> Apps1
     end
 
-    Entra -->|OIDC Brokering| HubKC
-    AD -->|LDAPS User Federation| HubKC
-    Entra -.->|Direct OIDC Brokering| KC1
-    Entra -.->|Direct OIDC Brokering| KC2
-    Entra -.->|Direct OIDC Brokering| KC3
-    HubKC -->|Hub-to-Spoke OIDC Delegation| KC1
-    HubKC -->|Hub-to-Spoke OIDC Delegation| KC2
-    HubKC -->|Hub-to-Spoke OIDC Delegation| KC3
+    subgraph SpokeStage["Cluster 2: Bravo (Stage)"]
+        KC2["<b>Keycloak Stage</b><br/>2 Replicas (HA)"]
+        Apps2["<b>Stage Workloads</b><br/>Microservices & APIs"]
+        KC2 <--> Apps2
+    end
 
-    classDef corporate fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
+    subgraph SpokeProd["Cluster 3: Charlie (Prod HA)"]
+        KC3["<b>Keycloak Prod HA</b><br/>3+ Replicas (Multi-AZ)"]
+        Apps3["<b>Production Apps</b><br/>Angular SPA & APIs"]
+        KC3 <--> Apps3
+    end
+
+    Entra -->|OIDC Federation| HubKC
+    AD -->|LDAPS Sync| HubKC
+    Entra -.->|Direct OIDC| KC1
+    Entra -.->|Direct OIDC| KC2
+    Entra -.->|Direct OIDC| KC3
+    HubKC -->|Hub Delegation| KC1
+    HubKC -->|Hub Delegation| KC2
+    HubKC -->|Hub Delegation| KC3
+
+    classDef corp fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
     classDef hub fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a;
     classDef spoke fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#0f172a;
 
-    class Entra,AD,EntraConnect corporate;
+    class Entra,AD,EntraSync corp;
     class HubKC,HubDB hub;
-    class KC1,KC2,KC3,Apps1,Apps2,Apps3 spoke;
+    class KC1,Apps1,KC2,Apps2,KC3,Apps3 spoke;
 ```
 
 ---
@@ -123,24 +121,24 @@ Enterprise organizations typically host core user identities in Microsoft Entra 
 sequenceDiagram
     autonumber
     actor Dev as Enterprise Developer
-    participant ClientApp as OpenShift Workload (ArgoCD / Backstage / Angular)
-    participant Keycloak as Red Hat Build of Keycloak (RHBK)
-    participant Entra as Microsoft Entra ID (Azure AD)
-    participant AD as On-Prem Active Directory (LDAPS)
+    participant ClientApp as OpenShift App<br/>(ArgoCD / Backstage / SPA)
+    participant Keycloak as Red Hat Build<br/>of Keycloak (RHBK)
+    participant Entra as Microsoft Entra ID<br/>(Azure AD)
+    participant AD as On-Premises AD<br/>(LDAPS)
 
     Dev->>ClientApp: Access Application
-    ClientApp->>Keycloak: Initiate OAuth 2.1 Authorization Code Flow (PKCE S256)
-    Keycloak->>Entra: Federate via OpenID Connect (Azure SSO)
-    Entra->>Entra: Enforce Corporate MFA / Conditional Access Policies
-    Entra-->>Keycloak: Return ID Token (UPN, email, Entra security groups)
-    opt Active Directory Enrichment
-        Keycloak->>AD: Query LDAPS for on-prem attributes / legacy groups
+    ClientApp->>Keycloak: Initiate OAuth 2.1 Flow<br/>(PKCE S256 Challenge)
+    Keycloak->>Entra: Federate via OpenID Connect<br/>(Corporate Azure SSO)
+    Entra->>Entra: Enforce Corporate MFA &<br/>Conditional Access Policies
+    Entra-->>Keycloak: Return ID Token<br/>(UPN, email, Entra groups)
+    opt Active Directory LDAP Query
+        Keycloak->>AD: Query LDAPS for on-prem<br/>attributes & legacy groups
         AD-->>Keycloak: Return Directory Attributes
     end
-    Keycloak->>Keycloak: Apply Protocol Mappers (Map Entra/AD groups to Keycloak Realm Roles)
-    Keycloak-->>ClientApp: Issue Signed JWT (Access Token & ID Token)
-    ClientApp->>ClientApp: Authorize user based on claims ('groups', 'roles')
-    ClientApp-->>Dev: Grant access with appropriate RBAC level
+    Keycloak->>Keycloak: Apply Protocol Mappers<br/>(Map Entra/AD groups to Roles)
+    Keycloak-->>ClientApp: Issue Signed JWTs<br/>(Access Token & ID Token)
+    ClientApp->>ClientApp: Validate Claims & Roles
+    ClientApp-->>Dev: Grant Authorized Access
 ```
 
 ---
@@ -151,20 +149,20 @@ OAuth 2.1 consolidates security best practices developed over a decade of OAuth 
 
 ```mermaid
 graph TD
-    subgraph Prohibited_Legacy["❌ Deprecated / Prohibited Legacy Flows"]
-        Imp["Implicit Grant (Tokens in URL)"]
-        ROPC["Password Grant (ROPC - Direct Credentials)"]
+    subgraph Prohibited["❌ Prohibited Legacy Flows"]
+        Imp["<b>Implicit Grant</b><br/>Tokens exposed in URL / history"]
+        ROPC["<b>Password Grant (ROPC)</b><br/>Direct credentials harvesting risk"]
     end
 
-    subgraph Modern_OAuth21["✅ Enforced Modern OAuth 2.1 & OIDC Flows"]
-        PKCE["Authorization Code + PKCE (RFC 7636)<br/>Mandatory for all interactive clients"]
-        BFF["Backend-For-Frontend (BFF Pattern)<br/>HttpOnly SameSite=Strict encrypted cookies"]
-        PrivKey["Private Key JWT (RFC 7523)<br/>Asymmetric auth for confidential services"]
-        TokEx["Token Exchange (RFC 8693)<br/>Scoped delegation for microservices"]
+    subgraph Modern["✅ Enforced Modern OAuth 2.1 & OIDC Flows"]
+        PKCE["<b>Auth Code + PKCE</b><br/>RFC 7636 (S256)<br/>Mandatory for UI apps"]
+        BFF["<b>BFF Proxy Pattern</b><br/>HttpOnly secure cookies<br/>Zero browser token exposure"]
+        PrivKey["<b>Private Key JWT</b><br/>RFC 7523 Asymmetric Auth<br/>For confidential services"]
+        TokEx["<b>Token Exchange</b><br/>RFC 8693 Delegation<br/>Scoped audience tokens"]
     end
 
-    style Prohibited_Legacy fill:#fee2e2,stroke:#b91c1c,stroke-width:2px,color:#7f1d1d;
-    style Modern_OAuth21 fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#14532d;
+    style Prohibited fill:#fee2e2,stroke:#b91c1c,stroke-width:2px,color:#7f1d1d;
+    style Modern fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#14532d;
 ```
 
 ---

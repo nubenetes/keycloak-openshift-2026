@@ -9,24 +9,24 @@ This module demonstrates the recommended OAuth 2.1 architecture for frontend Sin
 ```mermaid
 graph LR
     subgraph Browser["User Browser"]
-        SPA["Angular 18+ App"]
+        SPA["<b>Angular 18+ SPA</b><br/>Frontend Client"]
     end
 
     subgraph OpenShift["OpenShift 4.20+ Cluster"]
-        BFF["OAuth2-Proxy / BFF Gateway<br/>(HttpOnly SameSite=Strict Cookie)"]
-        KC["Keycloak (RHBK)<br/>OAuth 2.1 Provider"]
-        API["Quarkus / Node.js Microservices<br/>(Bearer JWT Verification)"]
+        BFF["<b>OAuth2-Proxy (BFF)</b><br/>HttpOnly Session Cookie<br/>No browser token storage"]
+        KC["<b>Keycloak (RHBK)</b><br/>OAuth 2.1 Provider<br/>Token Authority"]
+        API["<b>Microservices</b><br/>Quarkus & Node.js<br/>Bearer JWT Auth"]
     end
 
-    SPA <-->|"Encrypted Session Cookie"| BFF
-    BFF <-->|"Auth Code + PKCE / Token Refresh"| KC
-    BFF -->|"Injected Bearer Authorization Header"| API
+    SPA <-->|"Encrypted Cookie"| BFF
+    BFF <-->|"Auth Code + PKCE"| KC
+    BFF -->|"Bearer JWT"| API
 
-    style Browser fill:#f8fafc,stroke:#64748b,stroke-width:2px;
-    style OpenShift fill:#f0fdf4,stroke:#16a34a,stroke-width:2px;
-    style BFF fill:#dbeafe,stroke:#2563eb,stroke-width:2px;
-    style KC fill:#fef3c7,stroke:#d97706,stroke-width:2px;
-    style API fill:#f3e8ff,stroke:#9333ea,stroke-width:2px;
+    style Browser fill:#f8fafc,stroke:#64748b,stroke-width:2px,color:#0f172a;
+    style OpenShift fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#0f172a;
+    style BFF fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#0f172a;
+    style KC fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a;
+    style API fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#0f172a;
 ```
 
 ### Why OAuth 2.1 Bans Implicit Grant & ROPC

@@ -8,19 +8,19 @@ This runbook covers Day 1 deployment of the Red Hat Build of Keycloak Operator, 
 
 ```mermaid
 graph TD
-    Repo["GitOps Repository<br/>(github.com/nubenetes/keycloak-openshift-2026)"] --> AppSet["ArgoCD ApplicationSet<br/>(openshift-gitops)"]
+    Repo["<b>GitOps Repository</b><br/>keycloak-openshift-2026"] --> AppSet["<b>ArgoCD ApplicationSet</b><br/>openshift-gitops"]
 
-    AppSet -->|Kustomize Overlay: dev| DevCluster["Cluster Alpha (Dev)<br/>• 1 Replica<br/>• Dev Hostname"]
-    AppSet -->|Kustomize Overlay: stage| StageCluster["Cluster Bravo (Stage)<br/>• 2 Replicas<br/>• Staging Hostname"]
-    AppSet -->|Kustomize Overlay: prod| ProdCluster["Cluster Charlie (Prod HA)<br/>• 3+ Replicas<br/>• Multi-AZ HPA<br/>• sso.enterprise.example.com"]
-    AppSet -.->|Optional Hub Overlay| HubCluster["Cluster Hub (Central)<br/>• Parent Master IdP"]
+    AppSet -->|Overlay: dev| DevCluster["<b>Cluster Alpha (Dev)</b><br/>1 Replica · Dev Route"]
+    AppSet -->|Overlay: stage| StageCluster["<b>Cluster Bravo (Stage)</b><br/>2 Replicas · Stage Route"]
+    AppSet -->|Overlay: prod| ProdCluster["<b>Cluster Charlie (Prod)</b><br/>3+ Replicas · Multi-AZ HPA<br/>sso.enterprise.example.com"]
+    AppSet -.->|Overlay: hub| HubCluster["<b>Cluster Hub (Central)</b><br/>Parent Master IdP"]
 
-    style Repo fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px;
-    style AppSet fill:#fef3c7,stroke:#b45309,stroke-width:2px;
-    style DevCluster fill:#f1f5f9,stroke:#64748b,stroke-width:2px;
-    style StageCluster fill:#f1f5f9,stroke:#64748b,stroke-width:2px;
-    style ProdCluster fill:#dcfce7,stroke:#15803d,stroke-width:2px;
-    style HubCluster fill:#ede9fe,stroke:#6d28d9,stroke-width:2px;
+    style Repo fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#0f172a;
+    style AppSet fill:#fef3c7,stroke:#b45309,stroke-width:2px,color:#0f172a;
+    style DevCluster fill:#f1f5f9,stroke:#64748b,stroke-width:2px,color:#0f172a;
+    style StageCluster fill:#f1f5f9,stroke:#64748b,stroke-width:2px,color:#0f172a;
+    style ProdCluster fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#0f172a;
+    style HubCluster fill:#ede9fe,stroke:#6d28d9,stroke-width:2px,color:#0f172a;
 ```
 
 ---

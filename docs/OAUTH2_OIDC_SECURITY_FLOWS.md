@@ -27,15 +27,15 @@ sequenceDiagram
     participant KC as Keycloak (RHBK)
     participant API as Resource Server (API)
 
-    Note over Browser: 1. Generate code_verifier (random entropy)<br/>2. Compute code_challenge = Base64URL(SHA256(code_verifier))
-    Browser->>KC: GET /protocol/openid-connect/auth?client_id=angular-spa&response_type=code&code_challenge=xyz...&code_challenge_method=S256
+    Note over Browser: 1. Generate code_verifier<br/>2. Compute code_challenge =<br/>Base64URL(SHA256(verifier))
+    Browser->>KC: GET /auth?client_id=angular-spa&response_type=code<br/>&code_challenge=xyz...&code_challenge_method=S256
     KC-->>User: Present Login & MFA / Entra ID Federation
     User->>KC: Authenticate
-    KC-->>Browser: 302 Redirect to /callback?code=AUTH_CODE_123&state=abc
-    Browser->>KC: POST /protocol/openid-connect/token (code=AUTH_CODE_123, code_verifier=RAW_VERIFIER)
-    Note over KC: Verify SHA256(RAW_VERIFIER) == code_challenge
+    KC-->>Browser: 302 Redirect /callback?code=AUTH_CODE_123&state=abc
+    Browser->>KC: POST /token (code=AUTH_CODE_123, verifier=RAW_VERIFIER)
+    Note over KC: Verify SHA256(RAW_VERIFIER)<br/>== code_challenge
     KC-->>Browser: 200 OK (access_token, id_token, refresh_token)
-    Browser->>API: GET /api/v1/resource (Authorization: Bearer access_token)
+    Browser->>API: GET /api/v1/resource (Bearer access_token)
     API-->>Browser: 200 OK (Protected Data)
 ```
 
@@ -50,10 +50,10 @@ sequenceDiagram
     participant KC as Keycloak (RHBK)
     participant DB as Backend Database
 
-    Note over Client: Sign a short-lived client_assertion JWT with private RSA key<br/>(iss=client_id, sub=client_id, aud=Keycloak, exp=+5m)
-    Client->>KC: POST /protocol/openid-connect/token<br/>(grant_type=client_credentials, client_assertion_type=jwt-bearer, client_assertion=JWT)
-    Note over KC: Validate JWT signature using registered public key / JWKS
-    KC-->>Client: 200 OK (access_token with client service account roles)
+    Note over Client: Sign short-lived client_assertion JWT with private RSA key<br/>(iss=client_id, sub=client_id, aud=Keycloak, exp=+5m)
+    Client->>KC: POST /token (grant_type=client_credentials,<br/>client_assertion_type=jwt-bearer, client_assertion=JWT)
+    Note over KC: Validate JWT signature<br/>via registered JWKS
+    KC-->>Client: 200 OK (access_token with service account roles)
     Client->>DB: Query data with service account credentials
 ```
 
@@ -72,11 +72,11 @@ sequenceDiagram
 
     User->>Edge: Submit Order
     Edge->>SvcA: POST /orders (Bearer UserAccessToken)
-    Note over SvcA: SvcA needs to invoke SvcB on behalf of User<br/>without granting SvcB broad permissions of UserAccessToken
-    SvcA->>KC: POST /protocol/openid-connect/token<br/>(grant_type=token-exchange, subject_token=UserAccessToken, audience=payment-service)
-    Note over KC: Verify exchange policy: SvcA is allowed to exchange User token for payment-service audience
-    KC-->>SvcA: Return DownstreamAccessToken (aud: payment-service, sub: User, act: SvcA)
-    SvcA->>SvcB: POST /payments (Bearer DownstreamAccessToken)
+    Note over SvcA: SvcA needs to invoke SvcB on behalf of User<br/>with scoped audience
+    SvcA->>KC: POST /token (grant_type=token-exchange,<br/>subject_token=UserToken, audience=payment-service)
+    Note over KC: Verify exchange policy:<br/>SvcA permitted for payment-service
+    KC-->>SvcA: Return DownstreamToken (aud: payment-service)
+    SvcA->>SvcB: POST /payments (Bearer DownstreamToken)
     SvcB->>SvcB: Validate token: audience matches payment-service
     SvcB-->>SvcA: 200 OK Payment Success
 ```

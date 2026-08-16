@@ -14,15 +14,15 @@ sequenceDiagram
     participant KC as Keycloak (RHBK)
     participant Entra as Microsoft Entra ID
 
-    Dev->>Argo: Click "Log in via Keycloak Enterprise SSO"
-    Argo->>KC: Redirect to /protocol/openid-connect/auth (PKCE + state)
-    KC->>Entra: Federate to Azure Entra ID login (SAML/OIDC)
-    Entra-->>KC: Return Entra ID token with UPN & Corporate Groups
-    KC->>KC: Map Entra groups to Keycloak /Admins or /Developers
+    Dev->>Argo: Click "Log in via Keycloak SSO"
+    Argo->>KC: Redirect to /auth (PKCE + state)
+    KC->>Entra: Federate to Azure Entra ID login
+    Entra-->>KC: Return Entra Token (UPN & Groups)
+    KC->>KC: Map Entra groups to Keycloak roles
     KC-->>Argo: Return Authorization Code
-    Argo->>KC: Exchange Code for ID & Access Token (via /token endpoint)
-    KC-->>Argo: Returns ID Token containing "groups": ["/Admins"]
-    Argo->>Argo: Match group claim to argocd-rbac-cm (assigns role:admin)
+    Argo->>KC: Exchange Code for Tokens (/token)
+    KC-->>Argo: Returns ID Token (groups: ["/Admins"])
+    Argo->>Argo: Match claim in argocd-rbac-cm<br/>(assigns role:admin)
     Argo-->>Dev: Access Granted with Admin Privileges
 ```
 
