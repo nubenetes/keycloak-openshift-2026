@@ -2,7 +2,9 @@
 ### Enterprise Multi-Cluster Identity & Access Management with Microsoft Entra ID, Active Directory & OAuth 2.1
 
 <p align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Keycloak_Logo.png" alt="Keycloak Logo" width="280" />
+  <a href="https://www.keycloak.org/" target="_blank" rel="noopener noreferrer">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Keycloak_Logo.png" alt="Keycloak Official Project" width="280" />
+  </a>
 </p>
 
 <p align="center">
